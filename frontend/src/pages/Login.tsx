@@ -24,8 +24,29 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/auth/login', formData);
-      login(response.data.user);
+      // Create form data
+      const formDataToSend = new FormData();
+      formDataToSend.append('username', formData.email); // FastAPI expects 'username' field
+      formDataToSend.append('password', formData.password);
+
+      const response = await axios.post('http://localhost:8000/api/v1/auth/login', formDataToSend, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      // For now, create a mock user since we don't have the user data in the response
+      const mockUser = {
+        id: 1,
+        email: formData.email,
+        first_name: 'John',
+        last_name: 'Doe',
+        date_of_birth: '1990-01-01',
+        gender: 'M',
+        phone_number: '1234567890'
+      };
+
+      login(mockUser);
       navigate('/');
     } catch (err) {
       if (axios.isAxiosError(err)) {

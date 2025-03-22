@@ -1,40 +1,23 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, JSON
+from sqlalchemy import Column, Integer, Float, String, JSON, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from .base import BaseModel
-import enum
+from datetime import datetime
+from app.db.base_class import Base
 
-class RiskLevel(str, enum.Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    VERY_HIGH = "very_high"
-
-class RiskAssessment(BaseModel):
+class RiskAssessment(Base):
     __tablename__ = "risk_assessments"
 
+    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    health_record_id = Column(Integer, ForeignKey("health_records.id"), nullable=False)
-    
-    # Risk Scores
-    overall_risk_score = Column(Float, nullable=False)  # 0-100
-    risk_level = Column(String, nullable=False)  # low, medium, high, very_high
-    
-    # Component Risk Scores
-    cardiovascular_risk = Column(Float)
-    respiratory_risk = Column(Float)
-    metabolic_risk = Column(Float)
-    lifestyle_risk = Column(Float)
-    
-    # Predictions
-    predicted_health_issues = Column(JSON)  # List of predicted health issues
-    risk_factors = Column(JSON)  # List of identified risk factors
-    recommendations = Column(JSON)  # List of health recommendations
-    
-    # Model Metadata
-    model_version = Column(String)
-    prediction_confidence = Column(Float)
-    
+    overall_risk_score = Column(Float, nullable=False)
+    cardiovascular_risk = Column(Float, nullable=False)
+    diabetes_risk = Column(Float, nullable=False)
+    respiratory_risk = Column(Float, nullable=False)
+    metabolic_risk = Column(Float, nullable=False)
+    lifestyle_risk = Column(Float, nullable=False)
+    recommendations = Column(JSON, nullable=False)
+    health_data = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
     # Relationships
-    user = relationship("User", back_populates="risk_assessments")
-    health_record = relationship("HealthRecord", back_populates="risk_assessments")
-    insurance_policies = relationship("InsurancePolicy", back_populates="risk_assessment") 
+    user = relationship("User", back_populates="risk_assessments") 

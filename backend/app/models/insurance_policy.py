@@ -1,54 +1,34 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, Date, JSON
+from sqlalchemy import Column, Integer, Float, String, Date, DateTime, ForeignKey, Enum
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from .base import BaseModel
+from app.db.base_class import Base
 import enum
 
 class PolicyType(str, enum.Enum):
-    LIFE = "life"
     HEALTH = "health"
+    LIFE = "life"
     CRITICAL_ILLNESS = "critical_illness"
     DISABILITY = "disability"
 
 class PolicyStatus(str, enum.Enum):
-    DRAFT = "draft"
-    PENDING = "pending"
     ACTIVE = "active"
+    PENDING = "pending"
     EXPIRED = "expired"
     CANCELLED = "cancelled"
 
-class InsurancePolicy(BaseModel):
+class InsurancePolicy(Base):
     __tablename__ = "insurance_policies"
 
+    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    risk_assessment_id = Column(Integer, ForeignKey("risk_assessments.id"), nullable=False)
-    provider_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Insurance provider
-    
-    # Policy Details
-    policy_type = Column(String, nullable=False)
-    policy_number = Column(String, unique=True, nullable=False)
-    status = Column(String, nullable=False, default=PolicyStatus.DRAFT)
-    
-    # Coverage Details
+    policy_type = Column(Enum(PolicyType), nullable=False)
+    status = Column(Enum(PolicyStatus), nullable=False, default=PolicyStatus.PENDING)
     coverage_amount = Column(Float, nullable=False)
-    premium_amount = Column(Float, nullable=False)
-    deductible_amount = Column(Float)
-    co_payment_percentage = Column(Float)
-    
-    # Dates
-    start_date = Column(Date)
-    end_date = Column(Date)
-    renewal_date = Column(Date)
-    
-    # Policy Features
-    benefits = Column(JSON)  # List of covered benefits
-    exclusions = Column(JSON)  # List of exclusions
-    riders = Column(JSON)  # List of additional riders
-    
-    # Risk-Based Adjustments
-    risk_adjustment_factor = Column(Float)  # Multiplier based on risk assessment
-    special_conditions = Column(JSON)  # Any special conditions or requirements
-    
+    premium = Column(Float, nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
     # Relationships
-    user = relationship("User", foreign_keys=[user_id], back_populates="insurance_policies")
-    provider = relationship("User", foreign_keys=[provider_id])
-    risk_assessment = relationship("RiskAssessment", back_populates="insurance_policies") 
+    user = relationship("User", back_populates="insurance_policies") 
